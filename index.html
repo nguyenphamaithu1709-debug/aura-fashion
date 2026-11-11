@@ -2804,9 +2804,9 @@
         </p>
       </div>
 
-      <form name="voucher" method="POST" data-netlify="true" netlify-honeypot="bot-field" onsubmit="handleFormSubmit(event)" class="space-y-4">
-        <input type="hidden" name="form-name" value="voucher">
-        <p class="hidden" aria-hidden="true"><label>Đừng điền ô này: <input name="bot-field" tabindex="-1" autocomplete="off"></label></p>
+      <form name="voucher" method="POST" onsubmit="handleFormSubmit(event)" class="space-y-4">
+        <input type="hidden" name="subject" value="AURA Fashion - Đăng ký voucher thử mới">
+        <input type="checkbox" name="botcheck" tabindex="-1" style="display:none" aria-hidden="true">
         
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
           <div>
@@ -2941,9 +2941,9 @@
       <div class="md:col-span-5 space-y-3 text-xs">
         <h5 class="font-bold text-white uppercase tracking-wider mb-2">Đăng Ký Nhận Bản Tin Thời Trang</h5>
         <p class="text-purple-100 text-[11px]">Nhận thông báo sớm nhất về các đợt ra mắt bộ sưu tập và ưu đãi riêng tư.</p>
-        <form name="newsletter" method="POST" data-netlify="true" netlify-honeypot="bot-field" onsubmit="handleNewsletterSubmit(event)" class="flex gap-2">
-          <input type="hidden" name="form-name" value="newsletter">
-          <p class="hidden" aria-hidden="true"><label>Đừng điền ô này: <input name="bot-field" tabindex="-1" autocomplete="off"></label></p>
+        <form name="newsletter" method="POST" onsubmit="handleNewsletterSubmit(event)" class="flex gap-2">
+          <input type="hidden" name="subject" value="AURA Fashion - Đăng ký nhận bản tin mới">
+          <input type="checkbox" name="botcheck" tabindex="-1" style="display:none" aria-hidden="true">
           <input 
             type="email" 
             name="email"
@@ -3052,13 +3052,23 @@
       }
     });
 
-    function sendToNetlify(form) {
-      return fetch('/', {
+    // Dán Access Key của Web3Forms vào đây (lấy tại https://web3forms.com, key gửi về email của bạn)
+    var WEB3FORMS_ACCESS_KEY = 'f3d7ab2b-c13b-4b8c-9888-12a1d14a86fc';
+
+    function sendToWeb3Forms(form) {
+      if (!WEB3FORMS_ACCESS_KEY || WEB3FORMS_ACCESS_KEY === 'YOUR_ACCESS_KEY_HERE') {
+        return Promise.reject(new Error('missing access key'));
+      }
+      var data = Object.fromEntries(new FormData(form));
+      data.access_key = WEB3FORMS_ACCESS_KEY;
+      return fetch('https://api.web3forms.com/submit', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams(new FormData(form)).toString()
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify(data)
       }).then(function (res) {
-        if (!res.ok) { throw new Error('send failed'); }
+        return res.json().then(function (json) {
+          if (!res.ok || !json.success) { throw new Error('send failed'); }
+        });
       });
     }
 
@@ -3067,7 +3077,7 @@
       var form = e.target;
       var btn = form.querySelector('button[type="submit"]');
       if (btn) { btn.disabled = true; btn.style.opacity = '0.7'; }
-      sendToNetlify(form).then(function () {
+      sendToWeb3Forms(form).then(function () {
         form.reset();
         var box = document.getElementById('success-box');
         box.classList.remove('hidden');
@@ -3083,7 +3093,7 @@
       e.preventDefault();
       var form = e.target;
       var btn = form.querySelector('button[type="submit"]');
-      sendToNetlify(form).then(function () {
+      sendToWeb3Forms(form).then(function () {
         form.reset();
         if (btn) { btn.textContent = 'Đã gửi ✓'; }
       }).catch(function () {
