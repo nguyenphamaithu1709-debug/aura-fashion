@@ -3073,5 +3073,287 @@
     }
   </script>
 
+  <!-- ================= CHATBOT TƯ VẤN AURA ================= -->
+  <style>
+    #khao-sat { scroll-margin-top: 72px; }
+    #aura-cb-launcher { position: fixed; right: 12px; bottom: calc(128px + env(safe-area-inset-bottom, 0px)); width: 56px; height: 56px; border-radius: 9999px; border: 0; cursor: pointer; z-index: 60; color: #fff; background: linear-gradient(135deg, #e03272, #d946ef 55%, #8b5cf6); box-shadow: 0 10px 24px -6px rgba(224,50,114,.55); display: flex; align-items: center; justify-content: center; transition: transform .2s ease; }
+    #aura-cb-launcher:hover { transform: scale(1.07); }
+    #aura-cb-launcher svg { width: 26px; height: 26px; }
+    #aura-cb-launcher .aura-ic-x { display: none; }
+    #aura-cb-launcher.is-open .aura-ic-x { display: block; }
+    #aura-cb-launcher.is-open .aura-ic-chat { display: none; }
+    #aura-cb-panel { position: fixed; right: 12px; bottom: calc(196px + env(safe-area-inset-bottom, 0px)); width: 360px; max-width: calc(100vw - 24px); height: min(540px, calc(100vh - 220px)); height: min(540px, calc(100dvh - 220px)); min-height: 320px; display: none; flex-direction: column; background: #fffafc; border: 1px solid #fce7f3; border-radius: 24px; box-shadow: 0 24px 60px -12px rgba(100,50,120,.35); overflow: hidden; z-index: 61; font-family: var(--font-sans, sans-serif); color: #1e1b24; }
+    #aura-cb-panel.open { display: flex; animation: auraPop .22s ease-out; }
+    .aura-cb-head { display: flex; align-items: center; gap: 10px; padding: 14px 14px 14px 16px; color: #fff; background: linear-gradient(90deg, #e03272, #d946ef 55%, #8b5cf6); }
+    .aura-cb-ava { width: 38px; height: 38px; border-radius: 9999px; background: #fff; color: #e03272; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 18px; flex-shrink: 0; }
+    .aura-cb-title { font-weight: 700; font-size: 15px; letter-spacing: .02em; line-height: 1.2; }
+    .aura-cb-sub { font-size: 11px; opacity: .92; display: flex; align-items: center; gap: 5px; margin-top: 2px; }
+    .aura-cb-sub i { width: 7px; height: 7px; border-radius: 9999px; background: #34d399; display: inline-block; }
+    .aura-cb-x { margin-left: auto; width: 32px; height: 32px; border-radius: 9999px; border: 0; cursor: pointer; background: rgba(255,255,255,.22); color: #fff; font-size: 20px; line-height: 1; display: flex; align-items: center; justify-content: center; }
+    .aura-cb-x:hover { background: rgba(255,255,255,.36); }
+    #aura-cb-log { flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 10px; background: linear-gradient(180deg, #fffafc, #f7eeff); }
+    .aura-msg { max-width: 86%; padding: 10px 13px; border-radius: 18px; font-size: 13.5px; line-height: 1.5; white-space: pre-line; overflow-wrap: anywhere; animation: auraIn .2s ease-out; }
+    .aura-msg.bot { align-self: flex-start; background: #fff; border: 1px solid #fce7f3; border-bottom-left-radius: 6px; }
+    .aura-msg.user { align-self: flex-end; color: #fff; background: linear-gradient(135deg, #e03272, #8b5cf6); border-bottom-right-radius: 6px; }
+    .aura-msg a { color: #e03272; font-weight: 600; text-decoration: underline; }
+    .aura-typing { display: flex; gap: 4px; padding: 13px 14px; }
+    .aura-typing span { width: 6px; height: 6px; border-radius: 9999px; background: #d8b4e2; animation: auraDot 1s infinite ease-in-out; }
+    .aura-typing span:nth-child(2) { animation-delay: .15s; }
+    .aura-typing span:nth-child(3) { animation-delay: .3s; }
+    .aura-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .aura-chip { border: 1px solid #fbcfe8; background: #fff; color: #c6235f; font-size: 12.5px; font-weight: 500; padding: 7px 12px; border-radius: 9999px; cursor: pointer; text-align: left; transition: background .15s ease; }
+    .aura-chip:hover { background: #fdf2f6; }
+    .aura-cta { display: flex; flex-direction: column; gap: 6px; width: 86%; align-self: flex-start; }
+    .aura-btn { display: block; text-align: center; font-size: 13px; font-weight: 700; padding: 10px 16px; border-radius: 9999px; text-decoration: none; transition: transform .15s ease, background .15s ease; }
+    .aura-btn:hover { transform: translateY(-1px); }
+    .aura-btn.primary { background: #e03272; color: #fff; box-shadow: 0 8px 18px -6px rgba(224,50,114,.5); }
+    .aura-btn.primary:hover { background: #c6235f; }
+    .aura-btn.ghost { background: #fff; color: #c6235f; border: 1px solid #fbcfe8; }
+    #aura-cb-form { display: flex; gap: 8px; padding: 10px; background: #fff; border-top: 1px solid #fce7f3; }
+    #aura-cb-input { flex: 1; min-width: 0; padding: 10px 14px; border: 1px solid #fbcfe8; border-radius: 9999px; background: #fffbfc; font-size: 14px; }
+    #aura-cb-input:focus { outline: 2px solid rgba(224,50,114,.3); border-color: #e03272; }
+    #aura-cb-form button { width: 40px; height: 40px; flex-shrink: 0; border: 0; border-radius: 9999px; background: #e03272; color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    #aura-cb-form button:hover { background: #c6235f; }
+    @keyframes auraPop { from { opacity: 0; transform: translateY(10px) scale(.98); } to { opacity: 1; transform: none; } }
+    @keyframes auraIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+    @keyframes auraDot { 0%, 80%, 100% { opacity: .35; transform: translateY(0); } 40% { opacity: 1; transform: translateY(-3px); } }
+    @media (max-width: 639px) {
+      #aura-cb-panel { left: 12px; right: 12px; width: auto; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); height: min(78vh, 620px); height: min(78dvh, 620px); }
+      body.aura-cb-open #aura-cb-launcher { display: none; }
+      #aura-cb-input { font-size: 16px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      #aura-cb-panel.open, .aura-msg, .aura-typing span { animation: none; }
+    }
+  </style>
+
+  <button id="aura-cb-launcher" type="button" aria-label="Mở chat tư vấn AURA" aria-expanded="false" aria-controls="aura-cb-panel">
+    <svg class="aura-ic-chat" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.5 8.5 0 0 1-12.4 7.5L3 20.5l1.6-5.1A8.5 8.5 0 1 1 21 11.5z"/><path d="M8.5 11.5h.01M12 11.5h.01M15.5 11.5h.01"/></svg>
+    <svg class="aura-ic-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+  </button>
+
+  <div id="aura-cb-panel" role="dialog" aria-label="Chat tư vấn AURA Fashion">
+    <div class="aura-cb-head">
+      <div class="aura-cb-ava font-serif-luxury">A</div>
+      <div>
+        <div class="aura-cb-title font-serif-luxury">AURA Fashion</div>
+        <div class="aura-cb-sub"><i></i> Trợ lý tư vấn tự động</div>
+      </div>
+      <button type="button" class="aura-cb-x" id="aura-cb-close" aria-label="Đóng chat">×</button>
+    </div>
+    <div id="aura-cb-log" role="log" aria-live="polite"></div>
+    <form id="aura-cb-form" autocomplete="off">
+      <input id="aura-cb-input" type="text" placeholder="Nhắn cho AURA nha..." aria-label="Tin nhắn của bạn" maxlength="300">
+      <button type="submit" aria-label="Gửi"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg></button>
+    </form>
+  </div>
+
+  <script>
+  (function () {
+    var FORM = '#khao-sat';
+    var $ = function (id) { return document.getElementById(id); };
+    var launcher = $('aura-cb-launcher'), panel = $('aura-cb-panel'), log = $('aura-cb-log'),
+        input = $('aura-cb-input'), formEl = $('aura-cb-form');
+    var greeted = false, queue = Promise.resolve();
+
+    var GREETING = 'Chào bạn, mình là trợ lý tư vấn tự động của AURA nè ✨ Bạn ngại chỗ nào khi chọn đồ, bắp tay, bắp chân hay chỗ khác? Bạn nói mình nghe, mình sẽ nói thẳng món nào hợp với bạn nha ❤️';
+    var CHIPS0 = ['Hỏi giá', 'Món nào che bắp tay?', 'Món nào che bắp chân?', 'Mình chưa biết chọn gì'];
+    var POOL = {
+      price: 'Hỏi giá',
+      size: 'Mình không biết chọn size nào?',
+      exchange: 'Mua rồi không vừa thì sao?',
+      inspect: 'Có được kiểm tra hàng không?',
+      voucher: 'Có voucher không?',
+      howOrder: 'Đặt hàng bằng cách nào?'
+    };
+
+    var ZALO_BTN = { zalo: true };
+    var BUY_CTA = { form: 'Điền form danh sách chờ →', zalo: true };
+
+    var R = {
+      howOrder: { text: 'Bạn nhắn Zalo cho mình nha: https://zalo.me/0387315820. Bạn nói mình nghe bạn thích món nào, mình tư vấn rồi hỗ trợ bạn ❤️', cta: BUY_CTA },
+      price: { text: 'Mấy món nổi bật bên mình nè:\n• Đầm Maxi Hoa Xòe Nhẹ: 399.000đ\n• Áo Sơ Mi Trắng Thanh Lịch: 289.000đ\n• Set Blazer Dáng Rủ Sang Trọng: 590.000đ\n• Quần Suông Cạp Cao Hack Dáng: 320.000đ\n\nGiá mình để dễ thử thôi nha. Bạn thích món nào, mình tư vấn thêm giúp bạn ❤️', cta: ZALO_BTN },
+      arm: { text: 'Bạn thử Áo Sơ Mi Trắng Thanh Lịch nha, món này che được bắp tay. Bạn nhắn Zalo, mình xem giúp bạn chọn size nha ✨', cta: ZALO_BTN },
+      calf: { text: 'Đầm Maxi Hoa Xòe Nhẹ che được bắp chân to đó bạn. Bạn muốn xem thêm thì nhắn Zalo cho mình nha ❤️', cta: ZALO_BTN },
+      longlegs: { text: 'Quần Suông Cạp Cao Hack Dáng giúp chân trông dài hơn nha. Bạn gửi mình chiều cao, cân nặng, mình xem size giúp bạn ✨', cta: ZALO_BTN },
+      belly: { text: 'Phần này mình muốn nói thẳng với bạn: mình cần biết thêm về dáng của bạn mới chọn đúng được. Bạn nhắn Zalo cho mình chiều cao, cân nặng và chỗ bạn ngại, mình xem món nào hợp nhất cho bạn nha ❤️', cta: ZALO_BTN },
+      size: { text: 'Bên mình có sẵn size nha. Bạn gửi mình chiều cao, cân nặng, mình xem giúp bạn chọn size. Mua về không vừa thì bạn đổi size trong 7 ngày nha ✨', cta: ZALO_BTN },
+      exchange: { text: 'Bạn được đổi size trong 7 ngày nha. Bạn nhắn Zalo cho mình, mình hướng dẫn bạn đổi ❤️', cta: ZALO_BTN },
+      inspect: { text: 'Có nha, bên mình cho kiểm tra hàng tận tay, ưng ý mới thanh toán ❤️' },
+      voucher: { text: 'Có nha, bên mình có voucher 15-20%. Bạn điền form trên website hoặc nhắn Zalo, mình gửi bạn chi tiết nha ✨', cta: { form: 'Điền form nhận voucher', zalo: true } },
+      buy: { text: 'Món này hợp với bạn đó nha ✨ Bạn nhắn Zalo cho mình nè: https://zalo.me/0387315820. Bạn gửi mình món bạn thích, size và màu, mình hỗ trợ bạn chốt đơn liền nha ❤️', cta: BUY_CTA },
+      think: { text: 'Bạn cứ thoải mái suy nghĩ nha ❤️ Nếu muốn, bạn điền form ngắn trên website để mình gửi bạn voucher và thông tin món bạn quan tâm. Bạn không cần mua ngay đâu nè ✨', cta: { form: 'Điền form nhận voucher' } },
+      ship: { text: 'Phần ship mình báo bạn cụ thể theo từng đơn qua Zalo nha.', cta: ZALO_BTN },
+      fabric: { text: 'Bạn cho mình xin chút thời gian để mình gửi thông tin chất liệu chi tiết cho bạn qua Zalo nha.', cta: ZALO_BTN },
+      unsure: { text: 'Không sao đâu bạn ✨ Bạn ngại chỗ nào khi chọn đồ, bắp tay, bắp chân hay chỗ khác? Bạn nói mình nghe, mình sẽ nói thẳng món nào hợp với bạn nha ❤️' },
+      fallback: { text: 'Mình chưa hiểu rõ ý bạn nè 😅 Bạn nhắn Zalo cho mình nha: https://zalo.me/0387315820. Hoặc bạn chọn một trong các nút bên dưới để mình trả lời nhanh nha ❤️', cta: ZALO_BTN }
+    };
+
+    // Thứ tự quan trọng: tình huống cụ thể xét trước, chung chung xét sau
+    var INTENTS = [
+      ['think', /\b(de (minh|toi|em|mk) (nghi|xem)|suy nghi|nghi them|xem them|chua biet co hop|tu tu|de sau)\b/],
+      ['exchange', /\b(doi|doi tra|tra hang|khong vua|bi chat|bi rong)\b/],
+      ['inspect', /\b(kiem tra hang|kiem hang|truoc khi thanh toan|ung y moi|cod)\b/],
+      ['voucher', /\b(voucher|ma giam|giam gia|uu dai|khuyen mai|coupon)\b/],
+      ['ship', /\b(ship|freeship|giao hang|van chuyen|phi giao|phi van)\b/],
+      ['fabric', /\b(chat lieu|chat vai|loai vai|vai gi|cotton|linen|lua|co gian)\b/],
+      ['arm', /\b(bap tay|tay to|canh tay|tay mup)\b/],
+      ['calf', /\b(bap chan|chan to|chan mup)\b/],
+      ['belly', /\b(bung|mo bung|vong 2|vong hai|eo)\b/],
+      ['longlegs', /\b(chan dai|chan ngan|dai chan|cao hon|hack dang|lun|thap)\b/],
+      ['size', /\b(size|sz|kich co|can nang|chieu cao|nang bao nhieu|cao bao nhieu|mac vua|mac duoc)\b/],
+      ['price', /\b(gia|gia ca|bao nhieu|bao tien|price)\b/],
+      ['howOrder', /\b(dat hang|cach dat|order|mua o dau|mua nhu the nao|mua the nao|mua online|muon dat)\b/],
+      ['buy', /\b(mua|chot|lay|thich|dep qua|dep ghe|ung roi|ung ghe)\b/],
+      ['unsure', /\b(chua biet chon|khong biet chon|goi y|tu van|chao|xin chao|hello|hi|alo)\b/]
+    ];
+
+    function norm(s) {
+      return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd')
+        .replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
+    }
+
+    function match(text) {
+      var n = norm(text);
+      for (var i = 0; i < INTENTS.length; i++) {
+        if (INTENTS[i][1].test(n)) return INTENTS[i][0];
+      }
+      return 'fallback';
+    }
+
+    function fmt(text) {
+      return text.replace(/&/g, '&amp;').replace(/</g, '&lt;')
+        .replace(/https:\/\/zalo\.me\/\d+/g, function (u) {
+          return '<a href="' + u + '" target="_blank" rel="noopener">' + u.replace('https://', '') + '</a>';
+        });
+    }
+
+    function scrollDown() { log.scrollTop = log.scrollHeight; }
+    function removeChips() { var c = log.querySelectorAll('.aura-chips'); for (var i = 0; i < c.length; i++) c[i].remove(); }
+
+    function addUser(text) {
+      var d = document.createElement('div');
+      d.className = 'aura-msg user';
+      d.textContent = text;
+      log.appendChild(d);
+      scrollDown();
+    }
+
+    function addBot(text, cta, chips) {
+      var d = document.createElement('div');
+      d.className = 'aura-msg bot';
+      d.innerHTML = fmt(text);
+      log.appendChild(d);
+      if (cta) {
+        var box = document.createElement('div');
+        box.className = 'aura-cta';
+        if (cta.form) {
+          var a = document.createElement('a');
+          a.className = 'aura-btn primary';
+          a.href = FORM;
+          a.setAttribute('data-aura-form', '1');
+          a.textContent = cta.form;
+          box.appendChild(a);
+        }
+        if (cta.zalo) {
+          var z = document.createElement('a');
+          z.className = 'aura-btn ' + (cta.form ? 'ghost' : 'primary');
+          z.href = 'https://zalo.me/0387315820';
+          z.target = '_blank';
+          z.rel = 'noopener';
+          z.textContent = 'Nhắn Zalo';
+          box.appendChild(z);
+        }
+        log.appendChild(box);
+      }
+      if (chips && chips.length) {
+        var row = document.createElement('div');
+        row.className = 'aura-chips';
+        chips.forEach(function (label) {
+          var b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'aura-chip';
+          b.textContent = label;
+          row.appendChild(b);
+        });
+        log.appendChild(row);
+      }
+      scrollDown();
+    }
+
+    function say(text, cta, chips) {
+      return new Promise(function (resolve) {
+        var t = document.createElement('div');
+        t.className = 'aura-msg bot aura-typing';
+        t.innerHTML = '<span></span><span></span><span></span>';
+        log.appendChild(t);
+        scrollDown();
+        setTimeout(function () {
+          t.remove();
+          addBot(text, cta, chips);
+          resolve();
+        }, Math.min(1100, 450 + text.length * 5));
+      });
+    }
+
+    function chipsFor(id) {
+      if (id === 'fallback') return CHIPS0;
+      var out = [];
+      Object.keys(POOL).forEach(function (k) { if (k !== id && out.length < 3) out.push(POOL[k]); });
+      return out;
+    }
+
+    function send(text) {
+      text = (text || '').trim();
+      if (!text) return;
+      removeChips();
+      addUser(text);
+      var id = match(text), r = R[id];
+      queue = queue.then(function () { return say(r.text, r.cta, chipsFor(id)); });
+    }
+
+    function openChat() {
+      panel.classList.add('open');
+      launcher.classList.add('is-open');
+      launcher.setAttribute('aria-expanded', 'true');
+      launcher.setAttribute('aria-label', 'Đóng chat tư vấn AURA');
+      document.body.classList.add('aura-cb-open');
+      if (!greeted) {
+        greeted = true;
+        queue = queue.then(function () { return say(GREETING, null, CHIPS0); });
+      }
+      if (window.matchMedia('(min-width: 640px)').matches) input.focus();
+    }
+
+    function closeChat() {
+      panel.classList.remove('open');
+      launcher.classList.remove('is-open');
+      launcher.setAttribute('aria-expanded', 'false');
+      launcher.setAttribute('aria-label', 'Mở chat tư vấn AURA');
+      document.body.classList.remove('aura-cb-open');
+    }
+
+    launcher.addEventListener('click', function () {
+      panel.classList.contains('open') ? closeChat() : openChat();
+    });
+    $('aura-cb-close').addEventListener('click', closeChat);
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && panel.classList.contains('open')) closeChat(); });
+
+    formEl.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var v = input.value;
+      input.value = '';
+      send(v);
+    });
+
+    log.addEventListener('click', function (e) {
+      var chip = e.target.closest('.aura-chip');
+      if (chip) { send(chip.textContent); return; }
+      // Bấm nút form: đóng cửa sổ chat để khách thấy form (trình duyệt tự cuộn tới #khao-sat)
+      if (e.target.closest('[data-aura-form]')) closeChat();
+    });
+  })();
+  </script>
+
 </body>
 </html>
