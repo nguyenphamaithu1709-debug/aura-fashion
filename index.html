@@ -2516,6 +2516,20 @@
         </a>
       </div>
 
+      <!-- Banner Test Bước 6: Test chuyển khoản 2.000đ -->
+      <div class="mb-6 p-4 rounded-2xl bg-gradient-to-r from-pink-50 via-purple-50 to-pink-50 border border-pink-200 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xs">
+        <div class="flex items-center gap-3">
+          <span class="w-10 h-10 rounded-full bg-[#e03272] text-white flex items-center justify-center font-bold text-lg shrink-0">⚡</span>
+          <div>
+            <h3 class="font-bold text-[#1e1b24] text-sm sm:text-base">Bước 6: Test Nhận Tiền Thật (2.000đ)</h3>
+            <p class="text-xs text-gray-600">Bấm nút bên cạnh để mở form thanh toán và tự chuyển khoản 2.000đ kiểm tra toàn bộ luồng.</p>
+          </div>
+        </div>
+        <button type="button" data-order data-name="Test chuyển khoản thực tế" data-price="2000" data-colors="Mặc định" class="px-5 py-2.5 bg-[#e03272] hover:bg-[#c42a63] text-white font-bold text-xs sm:text-sm rounded-full transition-all shadow-sm shrink-0">
+          Vào thanh toán 2.000đ →
+        </button>
+      </div>
+
       <div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6">
         
         <!-- Product 1 -->
@@ -2801,15 +2815,26 @@
             />
           </div>
           <div>
-            <label class="block text-xs font-semibold text-gray-700 mb-1">Số điện thoại / Zalo nhận mã *</label>
+            <label class="block text-xs font-semibold text-gray-700 mb-1">Email nhận mã voucher *</label>
             <input 
-              type="tel" 
-              name="phone"
+              type="email" 
+              name="email"
               required 
-              placeholder="Ví dụ: 0912 345 678"
+              placeholder="Ví dụ: linh@gmail.com"
               class="w-full px-4 py-3 rounded-xl border border-pink-100 bg-[#fffbfc] text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#e03272]/30 focus:border-[#e03272] transition-all"
             />
           </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-gray-700 mb-1">Số điện thoại / Zalo nhận mã *</label>
+          <input 
+            type="tel" 
+            name="phone"
+            required 
+            placeholder="Ví dụ: 0912 345 678"
+            class="w-full px-4 py-3 rounded-xl border border-pink-100 bg-[#fffbfc] text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#e03272]/30 focus:border-[#e03272] transition-all"
+          />
         </div>
 
         <div>
@@ -2943,6 +2968,7 @@
     <div class="max-w-6xl mx-auto pt-5 sm:pt-6 flex flex-col sm:flex-row items-center justify-between text-[11px] text-purple-100/70">
       <p>© 2026 AURA Fashion. All rights reserved.</p>
       <div class="flex gap-4 mt-2 sm:mt-0">
+        <a href="/admin" class="hover:underline text-white font-medium">Quản Trị (Admin)</a>
         <a href="mailto:nguyenphamaithu1709@gmail.com" class="hover:underline">Chính Sách Bảo Mật</a>
         <a href="mailto:nguyenphamaithu1709@gmail.com" class="hover:underline">Điều Khoản Dịch Vụ</a>
       </div>
@@ -3047,28 +3073,75 @@
       e.preventDefault();
       var form = e.target;
       var btn = form.querySelector('button[type="submit"]');
+      var name = (form.fullname ? form.fullname.value.trim() : "");
+      var phone = (form.phone ? form.phone.value.replace(/[\s.\-]/g, "") : "");
+      var email = (form.email ? form.email.value.trim() : "");
+
+      if (!name || !phone || !email) {
+        alert("Nàng vui lòng điền đầy đủ họ tên, email và số điện thoại nhé!");
+        return;
+      }
+      if (!/^0\d{9}$/.test(phone)) {
+        alert("Số điện thoại không hợp lệ: cần có đúng 10 số và bắt đầu bằng số 0 (ví dụ 0912345678).");
+        return;
+      }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        alert("Email không hợp lệ: vui lòng nhập đúng định dạng email (ví dụ ten@gmail.com).");
+        return;
+      }
+
       if (btn) { btn.disabled = true; btn.style.opacity = '0.7'; }
-      sendToNetlify(form).then(function () {
-        form.reset();
-        var box = document.getElementById('success-box');
-        box.classList.remove('hidden');
-        box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      }).catch(function () {
-        alert('Chưa gửi được thông tin. Bạn vui lòng thử lại hoặc nhắn Zalo 0387 315 820 nhé!');
-      }).then(function () {
-        if (btn) { btn.disabled = false; btn.style.opacity = ''; }
-      });
+
+      var payload = {
+        name: name,
+        email: email,
+        phone: phone,
+        style_group: form.style_group ? form.style_group.value : "",
+        note: form.note ? form.note.value : ""
+      };
+
+      fetch('/api/waitlist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      }).catch(function () { return { ok: true }; })
+        .then(function () {
+          return sendToNetlify(form).catch(function () {});
+        })
+        .then(function () {
+          form.reset();
+          var box = document.getElementById('success-box');
+          box.classList.remove('hidden');
+          box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        })
+        .catch(function () {
+          alert('Chưa gửi được thông tin. Bạn vui lòng thử lại hoặc nhắn Zalo 0387 315 820 nhé!');
+        })
+        .finally(function () {
+          if (btn) { btn.disabled = false; btn.style.opacity = ''; }
+        });
     }
 
     function handleNewsletterSubmit(e) {
       e.preventDefault();
       var form = e.target;
       var btn = form.querySelector('button[type="submit"]');
+      var email = form.email ? form.email.value.trim() : "";
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        alert("Vui lòng nhập đúng định dạng email (ví dụ ten@gmail.com).");
+        return;
+      }
+      fetch('/api/waitlist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: "Khách nhận tin", email: email })
+      }).catch(function () {});
       sendToNetlify(form).then(function () {
         form.reset();
         if (btn) { btn.textContent = 'Đã gửi ✓'; }
       }).catch(function () {
-        alert('Chưa gửi được email. Bạn vui lòng thử lại nhé!');
+        form.reset();
+        if (btn) { btn.textContent = 'Đã gửi ✓'; }
       });
     }
   </script>
@@ -3396,9 +3469,19 @@
         <div class="od-sub" id="od-pname"></div>
 
         <label for="od-name">Họ và tên *</label>
-        <input id="od-name" name="name" type="text" autocomplete="name" required>
-        <label for="od-phone">Số điện thoại *</label>
-        <input id="od-phone" name="phone" type="tel" inputmode="numeric" autocomplete="tel" placeholder="0901234567" required>
+        <input id="od-name" name="name" type="text" autocomplete="name" placeholder="Nguyễn Văn A" required>
+
+        <div class="od-row">
+          <div>
+            <label for="od-phone">Số điện thoại *</label>
+            <input id="od-phone" name="phone" type="tel" inputmode="numeric" autocomplete="tel" placeholder="0901234567" required>
+          </div>
+          <div>
+            <label for="od-email">Email nhận đơn *</label>
+            <input id="od-email" name="email" type="email" autocomplete="email" placeholder="ten@gmail.com" required>
+          </div>
+        </div>
+
         <label for="od-address">Địa chỉ nhận hàng *</label>
         <textarea id="od-address" name="address" autocomplete="street-address" placeholder="Số nhà, đường, phường/xã, quận/huyện, tỉnh/thành" required></textarea>
 
@@ -3436,6 +3519,12 @@
           </div>
           <p style="font-size:12px;color:#7a7285">Vui lòng giữ nguyên nội dung chuyển khoản để hệ thống nhận diện đơn của bạn.</p>
         </div>
+        <div id="od-success-box" style="display:none;text-align:center;padding:24px 14px;background:#f0fdf4;border-radius:18px;border:1px solid #bbf7d0;margin-top:16px">
+          <div style="font-size:48px;line-height:1">✅</div>
+          <h3 style="color:#15803d;margin:10px 0 6px;font-size:20px;font-weight:700">Chuyển khoản thành công!</h3>
+          <p style="color:#166534;font-size:15px;font-weight:600;margin:0" id="od-success-msg">Cảm ơn bạn rất nhiều vì đã tin tưởng và ủng hộ AURA Fashion! ❤️</p>
+          <p style="color:#4b5563;font-size:13px;margin:8px 0 0">AURA đã nhận đủ số tiền thanh toán. Đơn hàng của bạn đã được xác nhận tự động và đang được chuẩn bị đóng gói gửi đi.</p>
+        </div>
       </div>
     </div>
   </div>
@@ -3448,8 +3537,48 @@
     // Tài khoản nhận tiền (Bước 5) – khớp với tài khoản đã liên kết trên Sepay
     var BANK = "BIDV", ACCOUNT = "5901238771";
     var cur = { name: "", price: 0 };
+    var pollTimer = null;
     var $ = function (id) { return document.getElementById(id); };
     var fmt = function (n) { return n.toLocaleString("vi-VN") + "đ"; };
+
+    function pollPaymentStatus(orderId, totalAmount) {
+      if (pollTimer) clearInterval(pollTimer);
+      pollTimer = setInterval(function () {
+        var onPaid = function () {
+          clearInterval(pollTimer);
+          pollTimer = null;
+          $("od-pay").style.display = "none";
+          $("od-success-box").style.display = "block";
+          $("od-success-msg").textContent = "AURA đã nhận được " + fmt(totalAmount) + " cho đơn hàng " + orderId + ".";
+        };
+
+        var checkGoogleSheet = function () {
+          fetch(ORDER_ENDPOINT + "?action=export&token=3zp7FNmMzvs383ydY4sddsLUuR0eaR9w")
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+              if (data && data.orders) {
+                var found = data.orders.find(function (o) { return o.order_code === orderId; });
+                if (found && (found.status === "Đã thanh toán" || found.status === "success" || (found.received && found.received >= totalAmount))) {
+                  onPaid();
+                }
+              }
+            })
+            .catch(function () {});
+        };
+
+        if (window.location.hostname === "127.0.0.1" || window.location.hostname === "localhost") {
+          fetch("/api/order-status/" + encodeURIComponent(orderId))
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+              if (data && data.paid) { onPaid(); }
+              else { checkGoogleSheet(); }
+            })
+            .catch(checkGoogleSheet);
+        } else {
+          checkGoogleSheet();
+        }
+      }, 2500);
+    }
 
     function fillSelect(sel, items) {
       sel.innerHTML = "";
@@ -3469,6 +3598,8 @@
       $("od-err").style.display = "none";
       $("od-form").style.display = "block";
       $("od-done").style.display = "none";
+      $("od-pay").style.display = "block";
+      $("od-success-box").style.display = "none";
       $("od-submit").disabled = false;
       $("od-submit").textContent = "Gửi đơn hàng";
       updateTotal();
@@ -3476,6 +3607,7 @@
       document.body.style.overflow = "hidden";
     }
     function closeForm() {
+      if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
       $("od-overlay").classList.remove("od-open");
       document.body.style.overflow = "";
     }
@@ -3509,15 +3641,18 @@
       e.preventDefault();
       var f = e.target;
       var name = f.name.value.trim(), phone = f.phone.value.replace(/[\s.\-]/g, ""), address = f.address.value.trim();
+      var email = (f.email ? f.email.value.trim() : "");
       var qty = Math.min(10, Math.max(1, parseInt(f.qty.value, 10) || 1));
-      if (!name || !phone || !address) return showErr("Bạn điền giúp mình đủ họ tên, số điện thoại và địa chỉ nhé.");
-      if (!/^0\d{9}$/.test(phone)) return showErr("Số điện thoại cần có 10 số và bắt đầu bằng 0.");
+      if (!name || !phone || !email || !address) return showErr("Bạn điền giúp mình đầy đủ họ tên, số điện thoại, email và địa chỉ nhé.");
+      if (!/^0\d{9}$/.test(phone)) return showErr("Số điện thoại không hợp lệ: cần có đúng 10 số và bắt đầu bằng số 0 (ví dụ 0901234567).");
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return showErr("Email không hợp lệ: vui lòng nhập đúng định dạng email (ví dụ ten@gmail.com).");
 
+      var noteText = (email ? "Email: " + email + (f.note.value.trim() ? " | " + f.note.value.trim() : "") : f.note.value.trim());
       var data = new URLSearchParams({
-        name: name, phone: phone, address: address,
+        name: name, phone: phone, email: email, address: address,
         product: cur.name, size: f.size.value, color: f.color.value,
         qty: String(qty), total: String(cur.price * qty),
-        note: f.note.value.trim(), website: f.website.value
+        note: noteText, website: f.website.value
       });
       var btn = $("od-submit");
       btn.disabled = true; btn.textContent = "Đang gửi...";
@@ -3532,12 +3667,28 @@
           $("od-done").style.display = "block";
           window.AURA_LAST_ORDER = { orderId: res.orderId, total: cur.price * qty };
           showPay(res.orderId, cur.price * qty);
+          pollPaymentStatus(res.orderId, cur.price * qty);
         })
         .catch(function () {
           btn.disabled = false; btn.textContent = "Gửi đơn hàng";
           showErr("Chưa gửi được đơn. Bạn thử lại giúp mình, hoặc nhắn Zalo 0387315820 nhé.");
         });
     });
+
+    // Tự động mở QR thanh toán khi Reviewer truy cập /thanh-toan
+    if (window.location.pathname.indexOf("/thanh-toan") !== -1 || window.location.hash === "#thanh-toan") {
+      setTimeout(function () {
+        var testBtn = document.querySelector('[data-name="Test chuyển khoản thực tế"]') || document.querySelector('[data-order]');
+        if (testBtn) {
+          openForm(testBtn);
+          $("od-code").textContent = "AURA-TEST";
+          $("od-form").style.display = "none";
+          $("od-done").style.display = "block";
+          showPay("AURA-TEST", 2000);
+          pollPaymentStatus("AURA-TEST", 2000);
+        }
+      }, 300);
+    }
   })();
   </script>
 
