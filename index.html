@@ -2516,20 +2516,6 @@
         </a>
       </div>
 
-      <!-- Banner Test Bước 6: Test chuyển khoản 2.000đ -->
-      <div class="mb-6 p-4 rounded-2xl bg-gradient-to-r from-pink-50 via-purple-50 to-pink-50 border border-pink-200 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xs">
-        <div class="flex items-center gap-3">
-          <span class="w-10 h-10 rounded-full bg-[#e03272] text-white flex items-center justify-center font-bold text-lg shrink-0">⚡</span>
-          <div>
-            <h3 class="font-bold text-[#1e1b24] text-sm sm:text-base">Bước 6: Test Nhận Tiền Thật (2.000đ)</h3>
-            <p class="text-xs text-gray-600">Bấm nút bên cạnh để mở form thanh toán và tự chuyển khoản 2.000đ kiểm tra toàn bộ luồng.</p>
-          </div>
-        </div>
-        <button type="button" data-order data-name="Test chuyển khoản thực tế" data-price="2000" data-colors="Mặc định" class="px-5 py-2.5 bg-[#e03272] hover:bg-[#c42a63] text-white font-bold text-xs sm:text-sm rounded-full transition-all shadow-sm shrink-0">
-          Vào thanh toán 2.000đ →
-        </button>
-      </div>
-
       <div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6">
         
         <!-- Product 1 -->
@@ -3104,8 +3090,26 @@
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
-      }).catch(function () { return { ok: true }; })
-        .then(function () {
+      }).then(function (res) {
+          if (res && res.ok) {
+            if (window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost') {
+              return;
+            }
+          } else {
+            fetch('http://127.0.0.1:5000/api/waitlist', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload)
+            }).catch(function () {});
+          }
+          return sendToNetlify(form).catch(function () {});
+        })
+        .catch(function () {
+          fetch('http://127.0.0.1:5000/api/waitlist', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          }).catch(function () {});
           return sendToNetlify(form).catch(function () {});
         })
         .then(function () {
