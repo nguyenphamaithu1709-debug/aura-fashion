@@ -2540,7 +2540,7 @@
               <span class="color-swatch bg-rose-400"></span>
               <span class="color-swatch bg-purple-300"></span>
             </div>
-            <a href="https://zalo.me/0387315820" target="_blank" rel="noopener" class="mt-2 block text-center text-[11px] sm:text-xs font-bold text-white bg-[#e03272] hover:bg-[#c42a63] rounded-full py-2 transition-colors">Nhắn Zalo đặt hàng</a>
+            <button type="button" data-order data-name="Đầm Maxi Hoa Xòe Nhẹ" data-price="399000" data-colors="Hồng|Đỏ hồng|Tím nhạt" class="mt-2 block w-full text-center text-[11px] sm:text-xs font-bold text-white bg-[#e03272] hover:bg-[#c42a63] rounded-full py-2 transition-colors">Đặt hàng ngay</button>
           </div>
         </div>
 
@@ -2572,7 +2572,7 @@
               <span class="color-swatch bg-stone-200"></span>
               <span class="color-swatch bg-blue-100"></span>
             </div>
-            <a href="https://zalo.me/0387315820" target="_blank" rel="noopener" class="mt-2 block text-center text-[11px] sm:text-xs font-bold text-white bg-[#e03272] hover:bg-[#c42a63] rounded-full py-2 transition-colors">Nhắn Zalo đặt hàng</a>
+            <button type="button" data-order data-name="Áo Sơ Mi Trắng Thanh Lịch" data-price="289000" data-colors="Trắng|Be|Xanh nhạt" class="mt-2 block w-full text-center text-[11px] sm:text-xs font-bold text-white bg-[#e03272] hover:bg-[#c42a63] rounded-full py-2 transition-colors">Đặt hàng ngay</button>
           </div>
         </div>
 
@@ -2598,7 +2598,7 @@
               <span class="color-swatch bg-[#4a4e69]"></span>
               <span class="color-swatch bg-[#22223b]"></span>
             </div>
-            <a href="https://zalo.me/0387315820" target="_blank" rel="noopener" class="mt-2 block text-center text-[11px] sm:text-xs font-bold text-white bg-[#e03272] hover:bg-[#c42a63] rounded-full py-2 transition-colors">Nhắn Zalo đặt hàng</a>
+            <button type="button" data-order data-name="Set Blazer Dáng Rủ Sang Trọng" data-price="590000" data-colors="Be|Xanh tím than|Đen" class="mt-2 block w-full text-center text-[11px] sm:text-xs font-bold text-white bg-[#e03272] hover:bg-[#c42a63] rounded-full py-2 transition-colors">Đặt hàng ngay</button>
           </div>
         </div>
 
@@ -2624,7 +2624,7 @@
               <span class="color-swatch bg-[#1b263b]"></span>
               <span class="color-swatch bg-[#e5e5e5]"></span>
             </div>
-            <a href="https://zalo.me/0387315820" target="_blank" rel="noopener" class="mt-2 block text-center text-[11px] sm:text-xs font-bold text-white bg-[#e03272] hover:bg-[#c42a63] rounded-full py-2 transition-colors">Nhắn Zalo đặt hàng</a>
+            <button type="button" data-order data-name="Quần Suông Cạp Cao Hack Dáng" data-price="320000" data-colors="Xanh lá|Xanh navy|Xám nhạt" class="mt-2 block w-full text-center text-[11px] sm:text-xs font-bold text-white bg-[#e03272] hover:bg-[#c42a63] rounded-full py-2 transition-colors">Đặt hàng ngay</button>
           </div>
         </div>
 
@@ -3351,6 +3351,158 @@
       if (chip) { send(chip.textContent); return; }
       // Bấm nút form: đóng cửa sổ chat để khách thấy form (trình duyệt tự cuộn tới #khao-sat)
       if (e.target.closest('[data-aura-form]')) closeChat();
+    });
+  })();
+  </script>
+
+
+  <!-- ================= FORM ĐẶT HÀNG (lưu vào Google Sheet) ================= -->
+  <style>
+    #od-overlay{position:fixed;inset:0;z-index:9999;background:rgba(30,27,36,.55);display:none;align-items:flex-end;justify-content:center;padding:0}
+    #od-overlay.od-open{display:flex}
+    #od-box{background:#fff;width:100%;max-width:480px;max-height:92vh;overflow-y:auto;border-radius:24px 24px 0 0;padding:20px 18px calc(20px + env(safe-area-inset-bottom,0px));position:relative}
+    @media(min-width:640px){#od-overlay{align-items:center;padding:16px}#od-box{border-radius:24px}}
+    #od-box h3{font-size:18px;font-weight:700;color:#1e1b24;margin:0 28px 2px 0}
+    #od-box .od-sub{font-size:13px;color:#e03272;font-weight:700;margin-bottom:12px}
+    #od-close{position:absolute;top:12px;right:14px;width:32px;height:32px;border:0;background:#f5eef3;border-radius:50%;font-size:20px;line-height:1;cursor:pointer;color:#4b4557}
+    .od-row{display:flex;gap:10px}.od-row>div{flex:1;min-width:0}
+    #od-box label{display:block;font-size:12px;font-weight:600;color:#4b4557;margin:10px 0 4px}
+    #od-box input,#od-box select,#od-box textarea{width:100%;border:1px solid #f0d5e3;border-radius:12px;padding:10px 12px;font-size:16px;background:#fffafc;color:#423d4c;font-family:inherit;box-sizing:border-box}
+    #od-box input:focus,#od-box select:focus,#od-box textarea:focus{outline:2px solid #e0327266;border-color:#e03272}
+    #od-box textarea{resize:vertical;min-height:60px}
+    .od-hp{position:absolute!important;left:-9999px!important;width:1px;height:1px;opacity:0}
+    #od-total{display:flex;justify-content:space-between;align-items:center;margin:14px 0 4px;padding:10px 12px;background:#fdf2f8;border-radius:12px;font-size:14px;font-weight:600}
+    #od-total strong{color:#e03272;font-size:17px}
+    #od-submit{width:100%;margin-top:10px;border:0;border-radius:999px;background:#e03272;color:#fff;font-weight:700;font-size:15px;padding:13px;cursor:pointer}
+    #od-submit:disabled{opacity:.6;cursor:wait}
+    #od-err{display:none;margin-top:10px;font-size:13px;color:#b91c1c;background:#fef2f2;border-radius:10px;padding:8px 10px}
+    #od-done{display:none;text-align:center;padding:10px 0}
+    #od-done .od-code{display:inline-block;margin:8px 0;padding:8px 16px;background:#fdf2f8;color:#e03272;font-weight:800;font-size:22px;letter-spacing:1px;border-radius:12px}
+    #od-done p{font-size:14px;color:#4b4557;margin:6px 0}
+  </style>
+
+  <div id="od-overlay" role="dialog" aria-modal="true" aria-labelledby="od-title">
+    <div id="od-box">
+      <button type="button" id="od-close" aria-label="Đóng">×</button>
+
+      <form id="od-form" autocomplete="on" novalidate>
+        <h3 id="od-title">Đặt hàng</h3>
+        <div class="od-sub" id="od-pname"></div>
+
+        <label for="od-name">Họ và tên *</label>
+        <input id="od-name" name="name" type="text" autocomplete="name" required>
+        <label for="od-phone">Số điện thoại *</label>
+        <input id="od-phone" name="phone" type="tel" inputmode="numeric" autocomplete="tel" placeholder="0901234567" required>
+        <label for="od-address">Địa chỉ nhận hàng *</label>
+        <textarea id="od-address" name="address" autocomplete="street-address" placeholder="Số nhà, đường, phường/xã, quận/huyện, tỉnh/thành" required></textarea>
+
+        <div class="od-row">
+          <div><label for="od-size">Size</label><select id="od-size" name="size"></select></div>
+          <div><label for="od-color">Màu</label><select id="od-color" name="color"></select></div>
+          <div><label for="od-qty">Số lượng</label><input id="od-qty" name="qty" type="number" min="1" max="10" value="1"></div>
+        </div>
+
+        <label for="od-note">Ghi chú (tùy chọn)</label>
+        <input id="od-note" name="note" type="text" maxlength="200">
+
+        <input class="od-hp" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+
+        <div id="od-total"><span>Tạm tính</span><strong id="od-total-val">0đ</strong></div>
+        <div id="od-err" role="alert"></div>
+        <button type="submit" id="od-submit">Gửi đơn hàng</button>
+      </form>
+
+      <div id="od-done">
+        <div style="font-size:34px">🎉</div>
+        <h3 style="margin:0">Đã nhận đơn của bạn!</h3>
+        <div class="od-code" id="od-code"></div>
+        <p>Mã đơn của bạn, bạn nhớ giữ lại nhé.</p>
+        <p>AURA sẽ liên hệ bạn qua số điện thoại hoặc Zalo để xác nhận.</p>
+        <!-- Bước 5 sẽ chèn mã QR thanh toán vào đây -->
+        <div id="od-pay"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  (function () {
+    // URL Google Apps Script nhận đơn (Bước 4)
+    var ORDER_ENDPOINT = "https://script.google.com/macros/s/AKfycbzLVl9P2RV8SK78ejbCR6zhfySQ58Cnj75GE2SXaWL6mnfsbLyhs6A_J8h8_Xnxf-vhQg/exec";
+    var SIZES = ["S", "M", "L", "XL"]; // sửa danh sách size tại đây
+    var cur = { name: "", price: 0 };
+    var $ = function (id) { return document.getElementById(id); };
+    var fmt = function (n) { return n.toLocaleString("vi-VN") + "đ"; };
+
+    function fillSelect(sel, items) {
+      sel.innerHTML = "";
+      items.forEach(function (v) { var o = document.createElement("option"); o.value = v; o.textContent = v; sel.appendChild(o); });
+    }
+    function updateTotal() {
+      var q = Math.min(10, Math.max(1, parseInt($("od-qty").value, 10) || 1));
+      $("od-total-val").textContent = fmt(cur.price * q);
+    }
+    function openForm(btn) {
+      cur.name = btn.getAttribute("data-name");
+      cur.price = parseInt(btn.getAttribute("data-price"), 10) || 0;
+      $("od-pname").textContent = cur.name + " – " + fmt(cur.price);
+      fillSelect($("od-size"), SIZES);
+      fillSelect($("od-color"), btn.getAttribute("data-colors").split("|"));
+      $("od-qty").value = 1;
+      $("od-err").style.display = "none";
+      $("od-form").style.display = "block";
+      $("od-done").style.display = "none";
+      $("od-submit").disabled = false;
+      $("od-submit").textContent = "Gửi đơn hàng";
+      updateTotal();
+      $("od-overlay").classList.add("od-open");
+      document.body.style.overflow = "hidden";
+    }
+    function closeForm() {
+      $("od-overlay").classList.remove("od-open");
+      document.body.style.overflow = "";
+    }
+    function showErr(msg) { var e = $("od-err"); e.textContent = msg; e.style.display = "block"; }
+
+    document.addEventListener("click", function (ev) {
+      var b = ev.target.closest && ev.target.closest("[data-order]");
+      if (b) { ev.preventDefault(); openForm(b); }
+    });
+    $("od-close").addEventListener("click", closeForm);
+    $("od-overlay").addEventListener("click", function (e) { if (e.target === this) closeForm(); });
+    document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeForm(); });
+    $("od-qty").addEventListener("input", updateTotal);
+
+    $("od-form").addEventListener("submit", function (e) {
+      e.preventDefault();
+      var f = e.target;
+      var name = f.name.value.trim(), phone = f.phone.value.replace(/[\s.\-]/g, ""), address = f.address.value.trim();
+      var qty = Math.min(10, Math.max(1, parseInt(f.qty.value, 10) || 1));
+      if (!name || !phone || !address) return showErr("Bạn điền giúp mình đủ họ tên, số điện thoại và địa chỉ nhé.");
+      if (!/^0\d{9}$/.test(phone)) return showErr("Số điện thoại cần có 10 số và bắt đầu bằng 0.");
+
+      var data = new URLSearchParams({
+        name: name, phone: phone, address: address,
+        product: cur.name, size: f.size.value, color: f.color.value,
+        qty: String(qty), total: String(cur.price * qty),
+        note: f.note.value.trim(), website: f.website.value
+      });
+      var btn = $("od-submit");
+      btn.disabled = true; btn.textContent = "Đang gửi...";
+      $("od-err").style.display = "none";
+
+      fetch(ORDER_ENDPOINT, { method: "POST", body: data })
+        .then(function (r) { return r.json(); })
+        .then(function (res) {
+          if (!res || !res.ok) throw new Error((res && res.error) || "Lỗi không xác định");
+          $("od-code").textContent = res.orderId;
+          $("od-form").style.display = "none";
+          $("od-done").style.display = "block";
+          window.AURA_LAST_ORDER = { orderId: res.orderId, total: cur.price * qty }; // dùng cho Bước 5
+        })
+        .catch(function () {
+          btn.disabled = false; btn.textContent = "Gửi đơn hàng";
+          showErr("Chưa gửi được đơn. Bạn thử lại giúp mình, hoặc nhắn Zalo 0387315820 nhé.");
+        });
     });
   })();
   </script>
