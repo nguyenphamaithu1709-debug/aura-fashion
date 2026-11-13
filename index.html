@@ -3379,6 +3379,12 @@
     #od-done{display:none;text-align:center;padding:10px 0}
     #od-done .od-code{display:inline-block;margin:8px 0;padding:8px 16px;background:#fdf2f8;color:#e03272;font-weight:800;font-size:22px;letter-spacing:1px;border-radius:12px}
     #od-done p{font-size:14px;color:#4b4557;margin:6px 0}
+    .od-bank{text-align:left;background:#fdf2f8;border-radius:14px;padding:6px 12px;margin:10px 0}
+    .od-bank>div{display:flex;align-items:center;gap:8px;padding:7px 0;font-size:13px;border-bottom:1px dashed #f0d5e3}
+    .od-bank>div:last-child{border-bottom:0}
+    .od-bank span{width:84px;color:#7a7285;flex-shrink:0}
+    .od-bank b{flex:1;color:#1e1b24;word-break:break-all}
+    .od-bank button{border:0;background:#fff;color:#e03272;font-weight:700;font-size:12px;border-radius:999px;padding:5px 10px;cursor:pointer}
   </style>
 
   <div id="od-overlay" role="dialog" aria-modal="true" aria-labelledby="od-title">
@@ -3418,8 +3424,18 @@
         <div class="od-code" id="od-code"></div>
         <p>Mã đơn của bạn, bạn nhớ giữ lại nhé.</p>
         <p>AURA sẽ liên hệ bạn qua số điện thoại hoặc Zalo để xác nhận.</p>
-        <!-- Bước 5 sẽ chèn mã QR thanh toán vào đây -->
-        <div id="od-pay"></div>
+        <div id="od-pay">
+          <p style="font-weight:700;color:#1e1b24;margin-top:14px">Quét mã QR để thanh toán</p>
+          <img id="od-qr" alt="Mã QR chuyển khoản" width="240" height="240" style="display:block;margin:8px auto;width:240px;max-width:100%;height:auto;border:1px solid #f0d5e3;border-radius:16px;padding:6px;background:#fff">
+          <p style="font-size:12px;color:#7a7285">Mở app ngân hàng, chọn Quét QR rồi xác nhận. Số tiền và nội dung đã được điền sẵn.</p>
+          <div class="od-bank">
+            <div><span>Ngân hàng</span><b id="od-b-bank"></b></div>
+            <div><span>Số tài khoản</span><b id="od-b-acc"></b><button type="button" data-copy="od-b-acc">Sao chép</button></div>
+            <div><span>Số tiền</span><b id="od-b-amt"></b><button type="button" data-copy="od-b-amt">Sao chép</button></div>
+            <div><span>Nội dung</span><b id="od-b-des"></b><button type="button" data-copy="od-b-des">Sao chép</button></div>
+          </div>
+          <p style="font-size:12px;color:#7a7285">Vui lòng giữ nguyên nội dung chuyển khoản để hệ thống nhận diện đơn của bạn.</p>
+        </div>
       </div>
     </div>
   </div>
@@ -3429,6 +3445,8 @@
     // URL Google Apps Script nhận đơn (Bước 4)
     var ORDER_ENDPOINT = "https://script.google.com/macros/s/AKfycbzLVl9P2RV8SK78ejbCR6zhfySQ58Cnj75GE2SXaWL6mnfsbLyhs6A_J8h8_Xnxf-vhQg/exec";
     var SIZES = ["S", "M", "L", "XL"]; // sửa danh sách size tại đây
+    // Tài khoản nhận tiền (Bước 5) – khớp với tài khoản đã liên kết trên Sepay
+    var BANK = "BIDV", ACCOUNT = "5901238771";
     var cur = { name: "", price: 0 };
     var $ = function (id) { return document.getElementById(id); };
     var fmt = function (n) { return n.toLocaleString("vi-VN") + "đ"; };
@@ -3461,6 +3479,21 @@
       $("od-overlay").classList.remove("od-open");
       document.body.style.overflow = "";
     }
+    function showPay(orderId, amount) {
+      var qs = new URLSearchParams({ acc: ACCOUNT, bank: BANK, amount: String(amount), des: orderId });
+      $("od-qr").src = "https://qr.sepay.vn/img?" + qs.toString();
+      $("od-b-bank").textContent = BANK;
+      $("od-b-acc").textContent = ACCOUNT;
+      $("od-b-amt").textContent = String(amount);
+      $("od-b-des").textContent = orderId;
+    }
+    document.addEventListener("click", function (ev) {
+      var c = ev.target.closest && ev.target.closest("[data-copy]");
+      if (!c) return;
+      var txt = $(c.getAttribute("data-copy")).textContent;
+      var done = function () { var t = c.textContent; c.textContent = "Đã chép"; setTimeout(function () { c.textContent = t; }, 1200); };
+      try { navigator.clipboard.writeText(txt).then(done, function () {}); } catch (e) {}
+    });
     function showErr(msg) { var e = $("od-err"); e.textContent = msg; e.style.display = "block"; }
 
     document.addEventListener("click", function (ev) {
@@ -3497,7 +3530,8 @@
           $("od-code").textContent = res.orderId;
           $("od-form").style.display = "none";
           $("od-done").style.display = "block";
-          window.AURA_LAST_ORDER = { orderId: res.orderId, total: cur.price * qty }; // dùng cho Bước 5
+          window.AURA_LAST_ORDER = { orderId: res.orderId, total: cur.price * qty };
+          showPay(res.orderId, cur.price * qty);
         })
         .catch(function () {
           btn.disabled = false; btn.textContent = "Gửi đơn hàng";
